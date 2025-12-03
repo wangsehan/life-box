@@ -3,8 +3,27 @@ import {
   Calendar, Clock, ArrowRight, Sparkles, RotateCcw, Plus, X, 
   ChevronDown, Trash2, List, GraduationCap, PartyPopper, Home, 
   Palette, Globe, Image as ImageIcon, AlertTriangle, ArrowLeft, History,
-  Users, UserPlus, Settings, Edit2, Download, Upload, HardDrive
+  Users, UserPlus, Settings, Edit2, Download, Upload, HardDrive,
+  Share2, Camera, Mail, Smile // 新增 Smile 图标
 } from 'lucide-react';
+
+// --- 全局样式注入 (字体) ---
+const FontLoader = () => {
+  useEffect(() => {
+    // 动态加载中文字体，用于生成精美海报
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }, []);
+  
+  return (
+    <style>{`
+      .font-hand { font-family: 'ZCOOL KuaiLe', cursive; }
+      .font-serif-cn { font-family: 'Ma Shan Zheng', cursive; }
+    `}</style>
+  );
+};
 
 // --- 数据常量定义 ---
 
@@ -30,6 +49,16 @@ const AGE_BASED_ACTIONS = {
     "给他发一条'无论如何我都爱你'的信息", "陪他去买一件他很想要的衣服", "支持他尝试一个新的爱好", "一起计划一次毕业旅行"
   ]
 };
+
+// --- 常用 Emoji 预设 (新增) ---
+const COMMON_EMOJIS = [
+  "🌟", "🎂", "🎉", "🎓", // 里程碑
+  "🏥", "💊", "🦷", "💉", // 健康
+  "✈️", "🚗", "🎢", "🏕️", // 出行
+  "🎨", "⚽", "🏊", "🎹", // 兴趣
+  "😄", "😭", "😡", "😴", // 心情
+  "❤️", "👨‍👩‍👧", "🏠", "🍜"  // 爱与生活
+];
 
 // --- 主题系统 ---
 const THEMES = {
@@ -114,7 +143,6 @@ const compressImage = (file) => {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        // 限制最大宽度为 800px，平衡清晰度和体积
         const MAX_WIDTH = 800; 
         let width = img.width;
         let height = img.height;
@@ -130,7 +158,6 @@ const compressImage = (file) => {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
         
-        // 压缩为 JPEG，质量 0.6 (通常能将 3MB 压到 50-100KB)
         const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
         resolve(dataUrl);
       };
@@ -165,7 +192,7 @@ const BirthDateSelector = ({ value, onChange, themeColors }) => {
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  const [y, m, d] = value ? value.split('-') : ['', '', ''];
+  const [y, m, d] = value ? value.split('-') : ['', '01', '01'];
 
   const handleChange = (type, val) => {
     let newY = y || currentYear;
@@ -193,7 +220,7 @@ const BirthDateSelector = ({ value, onChange, themeColors }) => {
       </div>
       <div className="relative">
         <select 
-          value={parseInt(m).toString()} 
+          value={parseInt(m || '1').toString()} 
           onChange={(e) => handleChange('month', e.target.value)}
           className={`w-full p-4 bg-white rounded-xl border ${themeColors.border} appearance-none outline-none focus:border-current font-bold text-slate-700`}
         >
@@ -203,7 +230,7 @@ const BirthDateSelector = ({ value, onChange, themeColors }) => {
       </div>
       <div className="relative">
         <select 
-          value={parseInt(d).toString()}
+          value={parseInt(d || '1').toString()}
           onChange={(e) => handleChange('day', e.target.value)}
           className={`w-full p-4 bg-white rounded-xl border ${themeColors.border} appearance-none outline-none focus:border-current font-bold text-slate-700`}
         >
@@ -249,6 +276,90 @@ const ChildSwitcher = ({ childrenList, activeChildId, onSwitch, onAdd, theme }) 
     </div>
   );
 }
+
+// 分享海报组件
+const SharePoster = ({ data, stats, memory, theme, onClose }) => {
+  if (!memory) return null;
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-slate-900/90 flex items-center justify-center p-6 backdrop-blur-sm animate-in fade-in">
+      <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+        
+        <div className={`w-full bg-white rounded-[24px] overflow-hidden shadow-2xl relative ${theme.bgSoft}`}>
+          <div className={`absolute -top-10 -right-10 w-32 h-32 rounded-full ${theme.primary} opacity-20 blur-xl`}></div>
+          <div className={`absolute -bottom-10 -left-10 w-32 h-32 rounded-full ${theme.primary} opacity-20 blur-xl`}></div>
+
+          <div className="p-6 pb-2 flex justify-between items-end">
+             <div>
+                <span className="text-4xl font-black text-slate-200 opacity-50 absolute top-4 left-6">MEMORY</span>
+                <h2 className={`text-2xl font-hand ${theme.textDark} relative z-10`}>{data.name}的时光</h2>
+             </div>
+             <div className="text-right">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Recorded On</p>
+                <p className={`text-lg font-bold ${theme.textMain} font-serif`}>
+                  {new Date(memory.timestamp).toLocaleDateString()}
+                </p>
+             </div>
+          </div>
+
+          <div className="px-6 py-2">
+            <div className="bg-white p-3 shadow-lg rotate-1 rounded-sm border border-slate-100">
+               <div className="aspect-square bg-slate-100 overflow-hidden relative group">
+                  {memory.image ? (
+                    <img src={memory.image} className="w-full h-full object-cover" alt="memory" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-50">
+                       <Sparkles size={48} />
+                    </div>
+                  )}
+                  <div className="absolute bottom-2 right-2 text-4xl shadow-sm filter drop-shadow-md">
+                    {memory.emoji}
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <div className="p-8 pt-4">
+             <div className="flex gap-2 mb-4">
+               <span className={`px-2 py-1 rounded text-[10px] font-bold text-white ${theme.primary}`}>
+                 {calculateAgeAtGrid(data.birthDate, memory.gridIndex || 0)}
+               </span>
+               <span className="px-2 py-1 rounded text-[10px] font-bold text-slate-500 bg-white border border-slate-200">
+                  第 {stats.daysAlive} 天
+               </span>
+             </div>
+             <p className={`text-lg leading-relaxed font-serif-cn text-slate-700 font-medium mb-6`}>
+               “{memory.text}”
+             </p>
+             
+             <div className="border-t border-slate-200/60 pt-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                   <div className={`w-8 h-8 rounded-full ${theme.bgGradient} flex items-center justify-center text-white`}>
+                      <Clock size={16} />
+                   </div>
+                   <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">App</span>
+                      <span className={`text-xs font-black ${theme.textMain}`}>时光小格</span>
+                   </div>
+                </div>
+                <div className="w-12 h-12 bg-slate-100 rounded md:block hidden"></div> 
+             </div>
+          </div>
+        </div>
+
+        <div className="text-center text-white space-y-2">
+           <p className="text-sm font-bold opacity-90 flex items-center justify-center gap-2">
+             <Camera size={16} /> 截图保存即可分享
+           </p>
+           <button onClick={onClose} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+             <X size={20} />
+           </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
 
 const SetupView = ({ isAddingNew, onSave, onCancel, initialData }) => {
   const [name, setName] = useState(initialData?.name || '');
@@ -402,8 +513,7 @@ const DashboardView = ({
 }) => {
   const theme = THEMES[childData.theme || 'orange'].colors;
   const [showMenu, setShowMenu] = useState(false);
-  const fileInputRef = useRef(null);
-
+  
   const handleImportClick = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -447,7 +557,7 @@ const DashboardView = ({
                     <Settings size={18} />
                  </button>
                  {showMenu && (
-                  <div className="absolute top-full right-0 mt-2 p-2 bg-white rounded-xl shadow-xl border border-slate-100 z-50 min-w-[140px] animate-in fade-in slide-in-from-top-2 flex flex-col gap-1">
+                  <div className="absolute top-full right-0 mt-2 p-2 bg-white rounded-xl shadow-xl border border-slate-100 z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 flex flex-col gap-1">
                     <button onClick={handleEditChild} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-600 text-left w-full">
                         <Edit2 size={14} /> 编辑资料
                     </button>
@@ -462,6 +572,17 @@ const DashboardView = ({
                     <button onClick={handleDeleteChild} className="flex items-center gap-2 px-3 py-2 hover:bg-red-50 rounded-lg text-xs font-bold text-red-500 text-left w-full">
                         <Trash2 size={14} /> 删除档案
                     </button>
+                    
+                    {/* 联系作者区域 */}
+                    <div className="mt-1 pt-2 border-t border-slate-100">
+                      <div className="px-3 pb-1">
+                         <p className="text-[10px] text-slate-400 mb-1">开发者联系</p>
+                         <a href="mailto:wangleihop@126.com" className="flex items-center gap-1.5 text-[10px] font-bold text-slate-600 hover:text-blue-500 transition-colors bg-slate-50 p-2 rounded border border-slate-100">
+                            <Mail size={12} />
+                            wangleihop@126.com
+                         </a>
+                      </div>
+                    </div>
                   </div>
                  )}
             </div>
@@ -578,7 +699,7 @@ const DashboardView = ({
         </div>
 
         {/* 底部功能 */}
-        <div className="pb-8">
+        <div className="pb-4">
           <div className={`bg-gradient-to-br ${theme.missionGradient} rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group`}>
             <div className="absolute top-0 right-0 p-6 opacity-20 transform group-hover:scale-110 transition-transform duration-700">
               <Sparkles size={100} />
@@ -602,92 +723,172 @@ const DashboardView = ({
             </button>
           </div>
         </div>
+
+        {/* 底部版权信息 */}
+        <div className="text-center pb-8 pt-4 opacity-40 hover:opacity-80 transition-opacity">
+           <p className="text-[10px] text-slate-400 font-mono flex items-center justify-center gap-1">
+             <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+             Created by wangleihop@126.com
+             <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
+           </p>
+        </div>
+
       </div>
     </div>
   );
 };
 
 const TimeGridsMulti = () => {
-  // 辅助函数
-  const safeGetJSON = (key, defaultVal) => {
-    try {
-      const val = localStorage.getItem(key);
-      return val ? JSON.parse(val) : defaultVal;
-    } catch (e) { return defaultVal; }
+  // IndexedDB helpers
+  const openDB = () => {
+    return new Promise((resolve, reject) => {
+      try {
+        const req = indexedDB.open('TimeGridsDB', 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      } catch (err) { reject(err); }
+    });
   };
 
-  const saveToStorage = (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-    } catch (e) {
-      if (e.name === 'QuotaExceededError') {
-        window.alert("存储空间已满！请尝试删除一些旧的图片回忆，或使用“备份数据”功能将数据导出后清理缓存。");
-      } else {
-        console.error("Storage error:", e);
-      }
-    }
+  const idbGet = async (key) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction('kv', 'readonly');
+        const store = tx.objectStore('kv');
+        const req = store.get(key);
+        req.onsuccess = () => {
+          const val = req.result;
+          if (val === undefined || val === null) {
+            resolve(null);
+            return;
+          }
+          try {
+            if (typeof val === 'string') {
+              resolve(JSON.parse(val));
+            } else {
+              resolve(val);
+            }
+          } catch (err) {
+            console.warn('idbGet: failed to parse value, returning raw', err);
+            resolve(val);
+          }
+        };
+        req.onerror = () => resolve(null);
+      } catch (err) { reject(err); }
+    });
+  };
+
+  const idbSet = async (key, value) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction('kv', 'readwrite');
+        const store = tx.objectStore('kv');
+        const req = store.put(JSON.stringify(value), key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = (e) => reject(e);
+      } catch (err) { reject(err); }
+    });
+  };
+
+  const idbRemove = async (key) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db.transaction('kv', 'readwrite');
+        const store = tx.objectStore('kv');
+        const req = store.delete(key);
+        req.onsuccess = () => resolve(true);
+        req.onerror = (e) => reject(e);
+      } catch (err) { reject(err); }
+    });
   };
 
   // --- State ---
-  const [children, setChildren] = useState(() => safeGetJSON('tg_children', []));
+  const [children, setChildren] = useState([]);
   const [activeChildId, setActiveChildId] = useState(null);
-  
-  const [allMemories, setAllMemories] = useState(() => safeGetJSON('tg_all_memories', {}));
+  const [allMemories, setAllMemories] = useState({});
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [view, setView] = useState('loading'); 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeGridIndex, setActiveGridIndex] = useState(null);
+  
+  // 新增：emoji选择器状态
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
   const [memoryInput, setMemoryInput] = useState({ emoji: '🌟', text: '', image: null });
   const [currentAction, setCurrentAction] = useState("");
   const [stats, setStats] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [showSharePoster, setShowSharePoster] = useState(null); 
   const fileInputRef = useRef(null);
 
   // --- 初始化与迁移逻辑 ---
   useEffect(() => {
-    const legacyName = localStorage.getItem('tg_child_name');
-    const legacyDate = localStorage.getItem('tg_birth_date');
-    const legacyTheme = localStorage.getItem('tg_theme');
-    const legacyMemories = safeGetJSON('tg_memories', {});
+    const init = async () => {
+      try {
+        const dbChildren = (await idbGet('tg_children')) || [];
+        const dbMemories = (await idbGet('tg_all_memories')) || {};
 
-    if (children.length === 0 && legacyName && legacyDate) {
-        const newChildId = Date.now().toString();
-        const newChild = {
-            id: newChildId,
-            name: legacyName,
-            birthDate: legacyDate,
-            theme: legacyTheme || 'orange'
-        };
-        
-        const newMemories = {};
-        Object.keys(legacyMemories).forEach(gridIdx => {
-            newMemories[`${newChildId}_${gridIdx}`] = legacyMemories[gridIdx];
-        });
-
-        const newChildrenList = [newChild];
-        setChildren(newChildrenList);
-        setAllMemories(newMemories);
-        setActiveChildId(newChildId);
-        
-        saveToStorage('tg_children', newChildrenList);
-        saveToStorage('tg_all_memories', newMemories);
-        setView('dashboard');
-    } else if (children.length > 0) {
-        if (!activeChildId) setActiveChildId(children[0].id);
-        setView('dashboard');
-    } else {
+        if (dbChildren && dbChildren.length > 0) {
+          setChildren(dbChildren);
+          setAllMemories(dbMemories);
+          if (!activeChildId) setActiveChildId(dbChildren[0].id);
+          setView('dashboard');
+        } else {
+          setView('setup');
+        }
+      } catch (err) {
+        console.error('IndexedDB init error', err);
         setView('setup');
-    }
-  }, []);
+      } finally {
+        setIsInitialized(true); 
+      }
+    };
+
+    init();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Persistence with Error Handling ---
-  useEffect(() => { 
-      if (children.length > 0) saveToStorage('tg_children', children); 
-  }, [children]);
-  
-  useEffect(() => { 
-      if (Object.keys(allMemories).length > 0) saveToStorage('tg_all_memories', allMemories); 
-  }, [allMemories]);
+  useEffect(() => {
+    if (!isInitialized) return; 
+
+    const persist = async () => {
+      try {
+        if (children.length > 0) await idbSet('tg_children', children);
+        else await idbRemove('tg_children');
+      } catch (err) {
+        console.error('Persist children error', err);
+        if (err.name === 'QuotaExceededError') {
+          window.alert("存储空间已满！请尝试删除一些旧的图片回忆，或使用“备份数据”功能将数据导出后清理缓存。");
+        }
+      }
+    };
+    persist();
+  }, [children, isInitialized]);
+
+  useEffect(() => {
+    if (!isInitialized) return; 
+
+    const persist = async () => {
+      try {
+        if (Object.keys(allMemories).length > 0) await idbSet('tg_all_memories', allMemories);
+        else await idbRemove('tg_all_memories');
+      } catch (err) {
+        console.error('Persist memories error', err);
+        if (err.name === 'QuotaExceededError') {
+          window.alert("存储空间已满！请尝试删除一些旧的图片回忆，或使用“备份数据”功能将数据导出后清理缓存。");
+        }
+      }
+    };
+    persist();
+  }, [allMemories, isInitialized]);
 
   // --- Stats Calculation ---
   useEffect(() => {
@@ -700,7 +901,7 @@ const TimeGridsMulti = () => {
   }, [activeChildId, children]);
 
   useEffect(() => {
-    if (stats) {
+    if (stats?.agePhase) {
       const ideas = AGE_BASED_ACTIONS[stats.agePhase] || AGE_BASED_ACTIONS['school'];
       const random = ideas[Math.floor(Math.random() * ideas.length)];
       setCurrentAction(random);
@@ -777,45 +978,30 @@ const TimeGridsMulti = () => {
       try {
         const importedData = JSON.parse(e.target.result);
         if (importedData.children && importedData.allMemories) {
-          // FIX: 使用 window.confirm 替代直接使用 confirm
           if (window.confirm(`检测到备份文件。\n包含 ${importedData.children.length} 个孩子档案。\n点击“确定”将合并到现有数据中（不会覆盖现有档案）。`)) {
             
             const newChildren = [...children];
             const newAllMemories = { ...allMemories };
             const existingIds = new Set(children.map(c => c.id));
-            const idMap = {}; // 记录旧ID到新ID的映射，用于处理冲突
+            const idMap = {}; 
 
-            // 1. 处理孩子档案
             importedData.children.forEach((child) => {
               let finalId = child.id;
-              
-              // 如果 ID 冲突（当前数据中已存在），生成一个新的 ID
               if (existingIds.has(child.id)) {
-                 // 生成规则：当前时间戳 + 3位随机数
                  finalId = Date.now().toString() + Math.floor(Math.random() * 1000).toString();
               }
-              
               idMap[child.id] = finalId;
-              
-              // 将孩子添加到列表
               newChildren.push({ ...child, id: finalId });
-              // 更新已存在ID集合，防止导入文件内部有重复
               existingIds.add(finalId);
             });
 
-            // 2. 处理记忆数据
             Object.keys(importedData.allMemories).forEach(key => {
-               // key 的格式通常是 "childId_gridIndex"
                const parts = key.split('_');
-               // 容错处理：确保 key 格式正确
                if (parts.length >= 2) {
                    const oldChildId = parts[0];
-                   // 剩下的部分重新组合（防止 gridIndex 本身包含下划线的情况，虽然当前逻辑没有）
                    const gridIndex = parts.slice(1).join('_');
-                   
                    const newChildId = idMap[oldChildId];
                    
-                   // 只有当这个记忆属于我们本次导入的孩子时才处理
                    if (newChildId) {
                       const newKey = `${newChildId}_${gridIndex}`;
                       newAllMemories[newKey] = importedData.allMemories[key];
@@ -826,7 +1012,6 @@ const TimeGridsMulti = () => {
             setChildren(newChildren);
             setAllMemories(newAllMemories);
             
-            // 如果成功导入，自动切换视图到第一个导入的孩子
             if (importedData.children.length > 0) {
                  const firstOldId = importedData.children[0].id;
                  setActiveChildId(idMap[firstOldId]);
@@ -883,7 +1068,6 @@ const TimeGridsMulti = () => {
           setChildren([]);
           setActiveChildId(null);
           setView('setup');
-          localStorage.removeItem('tg_children');
       }
       setShowDeleteConfirm(false);
   };
@@ -914,7 +1098,9 @@ const TimeGridsMulti = () => {
         ...allMemories,
         [key]: [...currentList, newMemory]
       });
+      // Reset input and close picker
       setMemoryInput({ emoji: '🌟', text: '', image: null });
+      setShowEmojiPicker(false);
     }
   };
 
@@ -932,13 +1118,11 @@ const TimeGridsMulti = () => {
     setAllMemories(newAllMemories);
   };
 
-  // 修改后的图片上传逻辑，包含压缩
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setIsCompressing(true);
       try {
-        // 执行压缩
         const compressedDataUrl = await compressImage(file);
         setMemoryInput(prev => ({ ...prev, image: compressedDataUrl }));
       } catch (err) {
@@ -959,6 +1143,7 @@ const TimeGridsMulti = () => {
 
   return (
     <div className="max-w-md mx-auto h-screen overflow-hidden font-sans shadow-2xl relative bg-white">
+      <FontLoader />
       
       {view === 'setup' && (
         <SetupView 
@@ -996,6 +1181,7 @@ const TimeGridsMulti = () => {
               if (idx <= stats.monthsPassed) {
                   setActiveGridIndex(idx);
                   setMemoryInput({ emoji: '🌟', text: '', image: null }); 
+                  setShowEmojiPicker(false); // 重置 Picker 状态
               }
           }}
           currentAction={currentAction}
@@ -1053,7 +1239,7 @@ const TimeGridsMulti = () => {
       {/* Memory Input Modal */}
       {activeGridIndex !== null && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col relative" onClick={() => setShowEmojiPicker(false)}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">回忆胶囊</h3>
@@ -1066,7 +1252,7 @@ const TimeGridsMulti = () => {
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto mb-4 space-y-4 min-h-[100px] border-b border-slate-100 pb-4 px-1">
+            <div className="flex-1 overflow-y-auto mb-4 space-y-4 min-h-[100px] border-b border-slate-100 pb-4 px-1" onClick={(e) => e.stopPropagation()}>
               {(() => {
                   const key = `${activeChildId}_${activeGridIndex}`;
                   const currentMems = allMemories[key] || [];
@@ -1085,12 +1271,22 @@ const TimeGridsMulti = () => {
                             <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-2 py-0.5 rounded-full">
                                 {formatTime(m.timestamp)}
                             </span>
-                            <button 
-                                onClick={() => deleteMemory(m.id)}
-                                className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full shadow-sm"
-                            >
-                                <Trash2 size={14} />
-                            </button>
+                            <div className="flex gap-2">
+                              {/* 分享按钮 */}
+                              <button 
+                                onClick={() => setShowSharePoster({ ...m, gridIndex: activeGridIndex })}
+                                className="text-slate-400 hover:text-blue-500 p-1 bg-white rounded-full shadow-sm transition-colors"
+                                title="生成分享卡片"
+                              >
+                                <Share2 size={14} />
+                              </button>
+                              <button 
+                                  onClick={() => deleteMemory(m.id)}
+                                  className="text-slate-300 hover:text-red-500 p-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full shadow-sm"
+                              >
+                                  <Trash2 size={14} />
+                              </button>
+                            </div>
                         </div>
                         {m.image && (
                             <div className="mb-3 overflow-hidden rounded-xl border border-slate-100">
@@ -1106,7 +1302,7 @@ const TimeGridsMulti = () => {
               })()}
             </div>
             
-            <div className="pt-2">
+            <div className="pt-2" onClick={(e) => e.stopPropagation()}>
               {memoryInput.image && (
                 <div className="relative mb-3 inline-block">
                   <img src={memoryInput.image} alt="preview" className="h-20 w-auto rounded-xl border border-slate-200 shadow-sm object-cover" />
@@ -1119,15 +1315,48 @@ const TimeGridsMulti = () => {
                 </div>
               )}
 
-              <div className="flex gap-2 mb-3 items-center">
-                <input 
-                    type="text" 
-                    value={memoryInput.emoji}
-                    onChange={(e) => setMemoryInput({...memoryInput, emoji: e.target.value})}
-                    className={`w-10 h-10 text-center text-xl bg-white rounded-xl border-2 border-slate-100 focus:border-current outline-none transition-colors flex-shrink-0`}
-                    maxLength={2}
-                    placeholder="🌟"
-                />
+              <div className="flex gap-2 mb-3 items-center relative z-20">
+                {/* Emoji 快捷选择器组件 */}
+                <div className="relative">
+                   <button 
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      className={`w-10 h-10 flex items-center justify-center text-xl bg-white rounded-xl border-2 ${showEmojiPicker ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-100'} hover:bg-slate-50 transition-all flex-shrink-0`}
+                   >
+                     {memoryInput.emoji || <Smile size={20} className="text-slate-400"/>}
+                   </button>
+                   
+                   {/* 气泡弹出菜单 */}
+                   {showEmojiPicker && (
+                     <div className="absolute bottom-full left-0 mb-3 bg-white shadow-xl p-3 rounded-2xl border border-slate-100 w-64 grid grid-cols-6 gap-2 z-50 animate-in zoom-in-95 origin-bottom-left">
+                        {COMMON_EMOJIS.map((emoji) => (
+                           <button 
+                             key={emoji}
+                             onClick={() => {
+                               setMemoryInput({...memoryInput, emoji: emoji});
+                               setShowEmojiPicker(false);
+                             }}
+                             className="text-2xl hover:bg-slate-100 p-1 rounded-lg transition-colors"
+                           >
+                             {emoji}
+                           </button>
+                        ))}
+                        <div className="col-span-6 border-t border-slate-100 pt-2 mt-1">
+                           <p className="text-[10px] text-slate-400 text-center mb-1">或手动输入</p>
+                           <input 
+                              type="text" 
+                              value={memoryInput.emoji}
+                              onChange={(e) => setMemoryInput({...memoryInput, emoji: e.target.value})}
+                              className="w-full text-center bg-slate-50 rounded border border-slate-200 text-sm py-1 focus:outline-none focus:border-blue-400"
+                              placeholder="DIY"
+                              maxLength={2}
+                           />
+                        </div>
+                        {/* 小三角装饰 */}
+                        <div className="absolute -bottom-2 left-3 w-4 h-4 bg-white border-b border-r border-slate-100 transform rotate-45"></div>
+                     </div>
+                   )}
+                </div>
+
                 <input 
                     type="text" 
                     value={memoryInput.text}
@@ -1161,6 +1390,17 @@ const TimeGridsMulti = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Share Poster Modal */}
+      {showSharePoster && activeChild && stats && (
+         <SharePoster 
+            data={activeChild}
+            stats={stats}
+            memory={showSharePoster}
+            theme={activeTheme}
+            onClose={() => setShowSharePoster(null)}
+         />
       )}
     </div>
   );
