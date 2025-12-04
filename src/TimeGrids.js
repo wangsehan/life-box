@@ -7,20 +7,49 @@ import {
   Share2, Camera, Mail, Smile, Smartphone, Cake, Flag, Briefcase
 } from 'lucide-react';
 
-// --- 全局样式注入 (字体) ---
-const FontLoader = () => {
+// --- 全局配置注入 (字体 & PWA全屏适配) ---
+const GlobalSetup = () => {
   useEffect(() => {
-    // 动态加载中文字体
+    // 1. 动态加载中文字体
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
+
+    // 2. iOS PWA 全屏配置
+    const metaCapable = document.createElement('meta');
+    metaCapable.name = 'apple-mobile-web-app-capable';
+    metaCapable.content = 'yes';
+    document.head.appendChild(metaCapable);
+
+    const metaStatus = document.createElement('meta');
+    metaStatus.name = 'apple-mobile-web-app-status-bar-style';
+    metaStatus.content = 'default';
+    document.head.appendChild(metaStatus);
+
+    // 3. Android PWA 专用配置 (关键补充)
+    // 告诉安卓浏览器这是一个 Web App
+    const metaMobile = document.createElement('meta');
+    metaMobile.name = 'mobile-web-app-capable';
+    metaMobile.content = 'yes';
+    document.head.appendChild(metaMobile);
+
+    // 设置主题色：这会让安卓浏览器的地址栏颜色变成白色，与 App 背景融合，
+    // 即使在没有成功全屏的情况下，视觉干扰也会最小化。
+    const metaTheme = document.createElement('meta');
+    metaTheme.name = 'theme-color';
+    metaTheme.content = '#ffffff'; 
+    document.head.appendChild(metaTheme);
+
   }, []);
   
   return (
     <style>{`
       .font-hand { font-family: 'ZCOOL KuaiLe', cursive; }
       .font-serif-cn { font-family: 'Ma Shan Zheng', cursive; }
+      /* 补充滚动条隐藏样式，确保界面清爽 */
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     `}</style>
   );
 };
@@ -1427,7 +1456,7 @@ const TimeGridsMulti = () => {
 
   return (
     <div className="max-w-md mx-auto h-screen overflow-hidden font-sans shadow-2xl relative bg-white">
-      <FontLoader />
+      <GlobalSetup />
       
       {view === 'setup' && (
         <SetupView 
