@@ -150,13 +150,13 @@ const calculateDateAtGrid = (birthDateStr, gridIndex) => {
 
 // 图标映射
 const IconMap = {
-  GraduationCap: <GraduationCap size={20} />,
-  PartyPopper: <PartyPopper size={20} />,
-  Home: <Home size={20} />,
-  Cake: <Cake size={20} />,
-  Flag: <Flag size={20} />,
-  Briefcase: <Briefcase size={20} />,
-  Clock: <Clock size={20} />
+  GraduationCap: <GraduationCap size={18} />,
+  PartyPopper: <PartyPopper size={18} />,
+  Home: <Home size={18} />,
+  Cake: <Cake size={18} />,
+  Flag: <Flag size={18} />,
+  Briefcase: <Briefcase size={18} />,
+  Clock: <Clock size={18} />
 };
 
 // --- 图片压缩核心逻辑 ---
@@ -268,10 +268,10 @@ const BirthDateSelector = ({ value, onChange, themeColors }) => {
   );
 };
 
-// 侧边栏/顶部切换器
+// 侧边栏/顶部切换器 (Compact Version)
 const ChildSwitcher = ({ childrenList, activeChildId, onSwitch, onAdd, theme }) => {
   return (
-    <div className="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-50">
+    <div className="bg-white px-6 py-3 border-b border-slate-100 flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
         {childrenList.map(child => {
             const isActive = child.id === activeChildId;
@@ -555,7 +555,7 @@ const AddCountdownModal = ({ onClose, onAdd, theme }) => {
 const ExperienceCard = ({ icon, title, count, unit, colorClass, borderClass, textClass, subtitle, onClick, onDelete }) => (
   <div 
     onClick={onClick}
-    className={`${colorClass} ${borderClass} border p-4 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden transition-all hover:scale-[1.02] shadow-sm group ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+    className={`${colorClass} ${borderClass} border px-3 py-3 rounded-2xl flex flex-col justify-between h-22 relative overflow-hidden transition-all hover:scale-[1.02] shadow-sm group ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
   >
     {/* 删除按钮优化：绝对定位，增大点击热区，最高层级 */}
     {onDelete && (
@@ -564,31 +564,31 @@ const ExperienceCard = ({ icon, title, count, unit, colorClass, borderClass, tex
           e.stopPropagation();
           onDelete();
         }}
-        className="absolute top-2 right-2 text-slate-400 hover:text-red-500 bg-white/60 hover:bg-white p-2 rounded-full transition-all z-20 shadow-sm"
+        className="absolute top-1.5 right-1.5 text-slate-400 hover:text-red-500 bg-white/60 hover:bg-white p-1.5 rounded-full transition-all z-20 shadow-sm opacity-60 hover:opacity-100"
         title="删除"
       >
-        <X size={16} />
+        <X size={14} />
       </button>
     )}
 
-    <div className={`flex items-center gap-2 mb-1 ${textClass} relative z-10 pr-6`}> {/* pr-6 避免文字重叠按钮 */}
+    <div className={`flex items-center gap-1.5 mb-1 ${textClass} relative z-10 pr-6`}> 
         {icon}
-        <span className="font-bold text-xs uppercase tracking-wider truncate max-w-[90px]">{title}</span>
+        <span className="font-bold text-[10px] uppercase tracking-wider truncate max-w-[80px]">{title}</span>
     </div>
     
     <div className="z-10">
       {count !== null ? (
         <>
-            <p className="text-2xl font-black text-slate-800 leading-none">{count}</p>
-            <p className="text-[10px] text-slate-600 font-medium mt-1">{unit}</p>
+            <p className="text-xl font-black text-slate-800 leading-none">{count}</p>
+            <p className="text-[10px] text-slate-600 font-medium mt-0.5">{unit}</p>
         </>
       ) : (
-        <div className="h-full flex items-center">
-            <Plus size={24} className="text-slate-300 mx-auto" />
+        <div className="h-full flex items-center justify-center -mt-2">
+            <Plus size={20} className="text-slate-300" />
         </div>
       )}
     </div>
-    <div className="absolute -bottom-4 -right-4 opacity-10 scale-150 text-slate-800 rotate-12">
+    <div className="absolute -bottom-3 -right-3 opacity-10 scale-125 text-slate-800 rotate-12 pointer-events-none">
       {icon}
     </div>
   </div>
@@ -658,7 +658,7 @@ const DashboardView = ({
     stats, 
     handleDeleteChild, 
     handleEditChild, 
-    handleSaveChildData, // 新增：用于保存倒计时修改
+    handleSaveChildData, 
     memories, 
     openMemoryModal, 
     currentAction, 
@@ -727,7 +727,7 @@ const DashboardView = ({
     <div className="flex flex-col h-full bg-white relative">
       {/* 顶部 Super Header */}
       <div className="relative z-20">
-        <div className={`absolute inset-0 bg-gradient-to-b ${theme.bgGradient} rounded-b-[48px] shadow-lg -z-10 transition-colors duration-500 overflow-hidden`}>
+        <div className={`absolute inset-0 bg-gradient-to-b ${theme.bgGradient} rounded-b-[40px] shadow-lg -z-10 transition-colors duration-500 overflow-hidden`}>
            <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
              <Globe size={200} className={theme.textMain} />
            </div>
@@ -742,11 +742,10 @@ const DashboardView = ({
             theme={theme}
         />
 
-        <div className="px-6 pt-6 pb-8">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex flex-col">
-                <span className={`text-xs font-bold tracking-widest uppercase opacity-60 ${theme.textDark}`}>Hello</span>
-                <span className={`text-2xl font-black ${theme.textDark}`}>{childData.name}</span>
+        <div className="px-6 pt-2 pb-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-2">
+                <span className={`text-xl font-black ${theme.textDark}`}>Hello, {childData.name}</span>
             </div>
             
             <div className="relative">
@@ -801,26 +800,22 @@ const DashboardView = ({
             </div>
           </div>
 
-          <div className="mb-6">
-            <h2 className={`text-sm font-bold uppercase tracking-widest mb-2 opacity-70 ${theme.textDark}`}>
-              已来到人间 / Days on Earth
-            </h2>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-medium text-slate-600">累计</span>
-              <span className={`text-7xl font-serif font-black tracking-tighter leading-none ${theme.textMain} drop-shadow-sm`}>
+          <div className="mb-4">
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className={`text-5xl font-serif font-black tracking-tighter leading-none ${theme.textMain} drop-shadow-sm`}>
                 {stats.daysAlive}
               </span>
-              <span className="text-2xl font-medium text-slate-600">天</span>
+              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest opacity-80">Days on Earth</span>
             </div>
           </div>
           
           <div>
-            <div className="flex justify-between mb-2 text-xs font-bold opacity-60 text-slate-600">
+            <div className="flex justify-between mb-1.5 text-[10px] font-bold opacity-60 text-slate-600">
               <span>0 岁</span>
               <span>{stats.percent}% 已流逝</span>
               <span>18 岁</span>
             </div>
-            <div className="w-full h-3 bg-white/50 rounded-full overflow-hidden backdrop-blur-sm shadow-inner border border-white/20">
+            <div className="w-full h-1.5 bg-white/50 rounded-full overflow-hidden backdrop-blur-sm shadow-inner border border-white/20">
               <div 
                 className={`h-full ${theme.primary} transition-all duration-1000 ease-out relative`} 
                 style={{ width: `${stats.percent}%` }}
@@ -836,21 +831,17 @@ const DashboardView = ({
       <div className="flex-1 overflow-y-auto p-6 scrollbar-hide relative z-10">
         
         {/* 体验倒计时卡片组 */}
-        <div className="mb-8">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="mb-6">
+          <div className="grid grid-cols-2 gap-2.5">
              {activeCountdowns.map((item) => {
                 let days = 0;
                 let unit = "天";
                 
                 // 计算逻辑
-                // 修复：移除 stats[item.key] !== undefined 的检查，因为 item.key (如 'adulthood') 与 stats 中的 key (如 'daysUntilAdulthood') 不直接对应
                 if (item.type === 'preset') {
-                   // 特殊处理周末和跨年（它们是次数而非天数）
                    if (item.key === 'spring_festival' || item.key === 'weekends') {
                      unit = item.key === 'spring_festival' ? "次" : "个";
                    }
-                   // 计算 Stats 中对应的 key
-                   // 预设key映射到stats的字段名
                    let statsKey = '';
                    if (item.key === 'adulthood') statsKey = 'daysUntilAdulthood';
                    else if (item.key === 'gaokao') statsKey = 'daysUntilGaokao';
@@ -875,7 +866,7 @@ const DashboardView = ({
                 return (
                   <ExperienceCard 
                     key={item.id}
-                    icon={IconMap[item.iconName] || <Clock size={20}/>} 
+                    icon={IconMap[item.iconName] || <Clock size={18}/>} 
                     title={item.title} 
                     count={days} 
                     unit={unit}
@@ -890,18 +881,18 @@ const DashboardView = ({
              {/* 添加倒计时按钮 */}
              <div 
                 onClick={() => setShowAddCountdown(true)}
-                className="bg-slate-50 border-2 border-dashed border-slate-200 p-4 rounded-2xl flex flex-col justify-center items-center h-32 cursor-pointer hover:bg-slate-100 transition-colors group"
+                className="bg-slate-50 border-2 border-dashed border-slate-200 p-3 rounded-2xl flex flex-col justify-center items-center h-22 cursor-pointer hover:bg-slate-100 transition-colors group"
              >
-                <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-white flex items-center justify-center text-slate-400 mb-2 transition-colors">
-                   <Plus size={20} />
+                <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-white flex items-center justify-center text-slate-400 mb-1 transition-colors">
+                   <Plus size={18} />
                 </div>
-                <span className="text-xs font-bold text-slate-400">添加</span>
+                <span className="text-[10px] font-bold text-slate-400">添加</span>
              </div>
           </div>
         </div>
 
         {/* 人生格子 */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex justify-between items-end mb-4">
             <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-wide">
               <Calendar size={16} className={theme.icon}/>
@@ -950,29 +941,30 @@ const DashboardView = ({
           </div>
         </div>
 
-        {/* 底部功能 */}
+        {/* 底部功能 (Idea Card Compact) */}
         <div className="pb-4">
-          <div className={`bg-gradient-to-br ${theme.missionGradient} rounded-3xl p-6 text-white shadow-xl relative overflow-hidden group`}>
-            <div className="absolute top-0 right-0 p-6 opacity-20 transform group-hover:scale-110 transition-transform duration-700">
-              <Sparkles size={100} />
+          <div className={`bg-gradient-to-br ${theme.missionGradient} rounded-2xl p-4 text-white shadow-xl relative overflow-hidden group`}>
+            <div className="absolute top-0 right-0 p-4 opacity-20 transform group-hover:scale-110 transition-transform duration-700">
+              <Sparkles size={80} />
             </div>
             
-            <div className="flex items-center gap-2 mb-3">
-               <span className="bg-white/30 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">Idea</span>
-               <span className="text-white/90 text-xs font-bold">本周亲子灵感 ({stats.phaseName})</span>
+            <div className="flex justify-between items-start">
+               <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-white/30 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider text-white shadow-sm">Idea</span>
+                    <span className="text-white/90 text-[10px] font-bold">本周灵感 ({stats.phaseName})</span>
+                  </div>
+                  <p className="text-base font-bold leading-tight pr-4 font-serif italic drop-shadow-sm mb-3">
+                    “{currentAction}”
+                  </p>
+               </div>
+               <button 
+                  onClick={refreshAction}
+                  className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white p-2 rounded-xl transition-all border border-white/20 shadow-sm"
+                >
+                  <RotateCcw size={14} />
+                </button>
             </div>
-            
-            <p className="text-xl font-bold leading-relaxed mb-6 pr-4 font-serif italic drop-shadow-sm">
-              “{currentAction}”
-            </p>
-            
-            <button 
-              onClick={refreshAction}
-              className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-sm py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border border-white/20 shadow-sm"
-            >
-              <RotateCcw size={14} />
-              换一个点子
-            </button>
           </div>
         </div>
 
@@ -1000,6 +992,7 @@ const DashboardView = ({
 };
 
 const TimeGridsMulti = () => {
+  // ... (保持 TimeGridsMulti 不变)
   // IndexedDB helpers
   const openDB = () => {
     return new Promise((resolve, reject) => {
