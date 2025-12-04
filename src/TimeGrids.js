@@ -4,13 +4,13 @@ import {
   ChevronDown, Trash2, List, GraduationCap, PartyPopper, Home, 
   Palette, Globe, Image as ImageIcon, AlertTriangle, ArrowLeft, History,
   Users, UserPlus, Settings, Edit2, Download, Upload, HardDrive,
-  Share2, Camera, Mail, Smile // 新增 Smile 图标
+  Share2, Camera, Mail, Smile, Smartphone, Cake, Flag, Briefcase
 } from 'lucide-react';
 
 // --- 全局样式注入 (字体) ---
 const FontLoader = () => {
   useEffect(() => {
-    // 动态加载中文字体，用于生成精美海报
+    // 动态加载中文字体
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+KuaiLe&display=swap';
     link.rel = 'stylesheet';
@@ -50,7 +50,22 @@ const AGE_BASED_ACTIONS = {
   ]
 };
 
-// --- 常用 Emoji 预设 (新增) ---
+// --- 默认倒计时预设 ---
+const DEFAULT_COUNTDOWNS = [
+  { id: 'sys_adult', type: 'preset', key: 'adulthood', title: '距18岁生日', iconName: 'GraduationCap', color: 'rose' },
+  { id: 'sys_gaokao', type: 'preset', key: 'gaokao', title: '距离高考', iconName: 'Briefcase', color: 'blue' },
+  { id: 'sys_bday', type: 'preset', key: 'birthday', title: '距离下个生日', iconName: 'Cake', color: 'amber' },
+];
+
+const PRESET_OPTIONS = [
+  { key: 'adulthood', title: '距18岁生日', iconName: 'GraduationCap', color: 'rose' },
+  { key: 'gaokao', title: '距离高考', iconName: 'Briefcase', color: 'blue' },
+  { key: 'birthday', title: '距离下个生日', iconName: 'Cake', color: 'amber' },
+  { key: 'spring_festival', title: '还可以一起跨年', iconName: 'PartyPopper', color: 'red' },
+  { key: 'weekends', title: '还可以共度周末', iconName: 'Home', color: 'emerald' },
+];
+
+// --- 常用 Emoji 预设 ---
 const COMMON_EMOJIS = [
   "🌟", "🎂", "🎉", "🎓", // 里程碑
   "🏥", "💊", "🦷", "💉", // 健康
@@ -131,6 +146,17 @@ const calculateDateAtGrid = (birthDateStr, gridIndex) => {
   const date = new Date(birthDateStr);
   date.setMonth(date.getMonth() + gridIndex);
   return `${date.getFullYear()}年${date.getMonth() + 1}月`;
+};
+
+// 图标映射
+const IconMap = {
+  GraduationCap: <GraduationCap size={20} />,
+  PartyPopper: <PartyPopper size={20} />,
+  Home: <Home size={20} />,
+  Cake: <Cake size={20} />,
+  Flag: <Flag size={20} />,
+  Briefcase: <Briefcase size={20} />,
+  Clock: <Clock size={20} />
 };
 
 // --- 图片压缩核心逻辑 ---
@@ -379,7 +405,7 @@ const SetupView = ({ isAddingNew, onSave, onCancel, initialData }) => {
       </h1>
       {!isAddingNew && <p className="text-slate-500 mb-6 max-w-xs text-sm">为每个孩子记录属于他们的18年时光</p>}
 
-      <div className="w-full max-w-xs space-y-6 bg-white p-6 rounded-3xl shadow-sm">
+      <div className="w-full max-w-xs space-y-6 bg-white p-6 rounded-3xl shadow-sm overflow-y-auto max-h-[60vh] scrollbar-hide">
         <div className="text-left">
           <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 ml-1">昵称</label>
           <input 
@@ -419,15 +445,148 @@ const SetupView = ({ isAddingNew, onSave, onCancel, initialData }) => {
   );
 };
 
-const ExperienceCard = ({ icon, title, count, unit, colorClass, borderClass, textClass, subtitle }) => (
-  <div className={`${colorClass} ${borderClass} border p-4 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden transition-transform hover:scale-[1.02] shadow-sm`}>
-    <div className={`flex items-center gap-2 mb-1 ${textClass}`}>
-      {icon}
-      <span className="font-bold text-xs uppercase tracking-wider">{title}</span>
+// 倒计时添加弹窗
+const AddCountdownModal = ({ onClose, onAdd, theme }) => {
+  const [activeTab, setActiveTab] = useState('custom'); // 'custom' or 'preset'
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  
+  const handleAddCustom = () => {
+    if(title && date) {
+      onAdd({
+        type: 'custom',
+        title,
+        date,
+        iconName: 'Flag',
+        color: 'sky'
+      });
+      onClose();
+    }
+  };
+
+  const handleAddPreset = (preset) => {
+    onAdd({
+      type: 'preset',
+      key: preset.key,
+      title: preset.title,
+      iconName: preset.iconName,
+      color: preset.color
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
+       <div className="bg-white w-full max-w-sm rounded-3xl p-6 animate-in slide-in-from-bottom-10 sm:zoom-in-95 duration-200 relative">
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full text-slate-400 hover:bg-slate-100">
+             <X size={18} />
+          </button>
+          
+          <h3 className="text-lg font-bold text-slate-800 mb-6">添加倒计时</h3>
+          
+          <div className="flex p-1 bg-slate-100 rounded-xl mb-6">
+            <button 
+              onClick={() => setActiveTab('custom')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'custom' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}
+            >
+              自定义目标
+            </button>
+            <button 
+              onClick={() => setActiveTab('preset')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'preset' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400'}`}
+            >
+              找回系统预设
+            </button>
+          </div>
+
+          {activeTab === 'custom' ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">目标名称</label>
+                <input 
+                  type="text" 
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="例如：去迪士尼、全家旅行"
+                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">目标日期</label>
+                <input 
+                  type="date" 
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-blue-400 focus:bg-white transition-colors"
+                />
+              </div>
+              <button 
+                onClick={handleAddCustom}
+                disabled={!title || !date}
+                className={`w-full py-3 mt-4 text-white font-bold rounded-xl transition-all hover:opacity-90 disabled:opacity-50 ${theme.primary}`}
+              >
+                添加倒计时
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-hide">
+              {PRESET_OPTIONS.map((preset) => (
+                <button
+                  key={preset.key}
+                  onClick={() => handleAddPreset(preset)}
+                  className="w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-100 flex items-center justify-between group transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                     <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-white text-${preset.color}-500 shadow-sm`}>
+                       {IconMap[preset.iconName] || <Clock size={16}/>}
+                     </div>
+                     <span className="font-bold text-slate-700 text-sm">{preset.title}</span>
+                  </div>
+                  <Plus size={16} className="text-slate-400 group-hover:text-blue-500" />
+                </button>
+              ))}
+            </div>
+          )}
+       </div>
     </div>
+  );
+};
+
+const ExperienceCard = ({ icon, title, count, unit, colorClass, borderClass, textClass, subtitle, onClick, onDelete }) => (
+  <div 
+    onClick={onClick}
+    className={`${colorClass} ${borderClass} border p-4 rounded-2xl flex flex-col justify-between h-32 relative overflow-hidden transition-all hover:scale-[1.02] shadow-sm group ${onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
+  >
+    {/* 删除按钮优化：绝对定位，增大点击热区，最高层级 */}
+    {onDelete && (
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        className="absolute top-2 right-2 text-slate-400 hover:text-red-500 bg-white/60 hover:bg-white p-2 rounded-full transition-all z-20 shadow-sm"
+        title="删除"
+      >
+        <X size={16} />
+      </button>
+    )}
+
+    <div className={`flex items-center gap-2 mb-1 ${textClass} relative z-10 pr-6`}> {/* pr-6 避免文字重叠按钮 */}
+        {icon}
+        <span className="font-bold text-xs uppercase tracking-wider truncate max-w-[90px]">{title}</span>
+    </div>
+    
     <div className="z-10">
-      <p className="text-2xl font-black text-slate-800 leading-none">{count > 0 ? count : 0}</p>
-      <p className="text-[10px] text-slate-600 font-medium mt-1">{unit}</p>
+      {count !== null ? (
+        <>
+            <p className="text-2xl font-black text-slate-800 leading-none">{count}</p>
+            <p className="text-[10px] text-slate-600 font-medium mt-1">{unit}</p>
+        </>
+      ) : (
+        <div className="h-full flex items-center">
+            <Plus size={24} className="text-slate-300 mx-auto" />
+        </div>
+      )}
     </div>
     <div className="absolute -bottom-4 -right-4 opacity-10 scale-150 text-slate-800 rotate-12">
       {icon}
@@ -499,6 +658,7 @@ const DashboardView = ({
     stats, 
     handleDeleteChild, 
     handleEditChild, 
+    handleSaveChildData, // 新增：用于保存倒计时修改
     memories, 
     openMemoryModal, 
     currentAction, 
@@ -513,13 +673,53 @@ const DashboardView = ({
 }) => {
   const theme = THEMES[childData.theme || 'orange'].colors;
   const [showMenu, setShowMenu] = useState(false);
+  const [showAddCountdown, setShowAddCountdown] = useState(false);
+
+  // 获取当前倒计时列表，如果没有则使用默认
+  const activeCountdowns = childData.countdowns || DEFAULT_COUNTDOWNS;
+
+  const removeCountdown = (id) => {
+     // 移除弹窗，直接执行删除
+     const newCountdowns = activeCountdowns.filter(c => c.id !== id);
+     handleSaveChildData({ countdowns: newCountdowns });
+  };
+
+  const addCountdown = (newCountdown) => {
+    // 生成唯一ID
+    const newItem = { ...newCountdown, id: Date.now().toString() };
+    const newCountdowns = [...activeCountdowns, newItem];
+    handleSaveChildData({ countdowns: newCountdowns });
+  };
+  
+  // --- PWA 安装逻辑开始 ---
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert("当前环境不支持自动安装，请使用浏览器菜单中的'添加到主屏幕'功能。");
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    setShowMenu(false);
+  };
+  // --- PWA 安装逻辑结束 ---
   
   const handleImportClick = (e) => {
     const file = e.target.files[0];
     if (file) {
       onImportData(file);
     }
-    // 重置输入以便重复上传
     e.target.value = null;
   };
 
@@ -558,6 +758,19 @@ const DashboardView = ({
                  </button>
                  {showMenu && (
                   <div className="absolute top-full right-0 mt-2 p-2 bg-white rounded-xl shadow-xl border border-slate-100 z-50 min-w-[160px] animate-in fade-in slide-in-from-top-2 flex flex-col gap-1">
+                    
+                    {/* PWA 安装按钮 */}
+                    <button 
+                        onClick={handleInstallClick} 
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold text-left w-full transition-colors
+                            ${deferredPrompt ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' : 'text-slate-400 hover:bg-slate-50'}`}
+                    >
+                        <Smartphone size={14} /> 
+                        {deferredPrompt ? '安装 App 到桌面' : '已安装 / 不支持'}
+                    </button>
+                    
+                    <div className="h-px bg-slate-100 my-1"></div>
+
                     <button onClick={handleEditChild} className="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg text-xs font-bold text-slate-600 text-left w-full">
                         <Edit2 size={14} /> 编辑资料
                     </button>
@@ -625,26 +838,65 @@ const DashboardView = ({
         {/* 体验倒计时卡片组 */}
         <div className="mb-8">
           <div className="grid grid-cols-2 gap-3">
-            <ExperienceCard 
-              icon={<GraduationCap size={20} />} 
-              title="距18岁生日" count={stats.daysUntilAdulthood} unit="天"
-              colorClass="bg-rose-50" borderClass="border-rose-100" textClass="text-rose-600"
-            />
-            <ExperienceCard 
-              icon={<PartyPopper size={20} />} 
-              title="还可以一起跨年" count={stats.remainingSpringFestivals} unit="次"
-              colorClass="bg-red-50" borderClass="border-red-100" textClass="text-red-600"
-            />
-            <ExperienceCard 
-              icon={<GraduationCap size={20} />} 
-              title="距离高考" count={stats.daysUntilGaokao} unit="天"
-              colorClass="bg-blue-50" borderClass="border-blue-100" textClass="text-blue-600"
-            />
-            <ExperienceCard 
-              icon={<Home size={20} />} 
-              title="还可以共度周末" count={stats.remainingWeekends} unit="个"
-              colorClass="bg-amber-50" borderClass="border-amber-100" textClass="text-amber-600"
-            />
+             {activeCountdowns.map((item) => {
+                let days = 0;
+                let unit = "天";
+                
+                // 计算逻辑
+                // 修复：移除 stats[item.key] !== undefined 的检查，因为 item.key (如 'adulthood') 与 stats 中的 key (如 'daysUntilAdulthood') 不直接对应
+                if (item.type === 'preset') {
+                   // 特殊处理周末和跨年（它们是次数而非天数）
+                   if (item.key === 'spring_festival' || item.key === 'weekends') {
+                     unit = item.key === 'spring_festival' ? "次" : "个";
+                   }
+                   // 计算 Stats 中对应的 key
+                   // 预设key映射到stats的字段名
+                   let statsKey = '';
+                   if (item.key === 'adulthood') statsKey = 'daysUntilAdulthood';
+                   else if (item.key === 'gaokao') statsKey = 'daysUntilGaokao';
+                   else if (item.key === 'birthday') statsKey = 'daysUntilNextBirthday';
+                   else if (item.key === 'spring_festival') statsKey = 'remainingSpringFestivals';
+                   else if (item.key === 'weekends') statsKey = 'remainingWeekends';
+                   
+                   days = (statsKey && stats[statsKey] !== undefined) ? stats[statsKey] : 0;
+                } else if (item.type === 'custom' && item.date) {
+                   const target = new Date(item.date);
+                   const now = new Date();
+                   if (!isNaN(target.getTime())) {
+                      days = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+                      if(days < 0) {
+                        unit = "天 (已过)";
+                      }
+                   }
+                }
+
+                const colorName = item.color || 'blue';
+                
+                return (
+                  <ExperienceCard 
+                    key={item.id}
+                    icon={IconMap[item.iconName] || <Clock size={20}/>} 
+                    title={item.title} 
+                    count={days} 
+                    unit={unit}
+                    colorClass={`bg-${colorName}-50`} 
+                    borderClass={`border-${colorName}-100`} 
+                    textClass={`text-${colorName}-600`}
+                    onDelete={() => removeCountdown(item.id)}
+                  />
+                );
+             })}
+
+             {/* 添加倒计时按钮 */}
+             <div 
+                onClick={() => setShowAddCountdown(true)}
+                className="bg-slate-50 border-2 border-dashed border-slate-200 p-4 rounded-2xl flex flex-col justify-center items-center h-32 cursor-pointer hover:bg-slate-100 transition-colors group"
+             >
+                <div className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-white flex items-center justify-center text-slate-400 mb-2 transition-colors">
+                   <Plus size={20} />
+                </div>
+                <span className="text-xs font-bold text-slate-400">添加</span>
+             </div>
           </div>
         </div>
 
@@ -734,6 +986,15 @@ const DashboardView = ({
         </div>
 
       </div>
+
+      {/* 倒计时添加弹窗 */}
+      {showAddCountdown && (
+         <AddCountdownModal 
+            theme={theme}
+            onClose={() => setShowAddCountdown(false)}
+            onAdd={addCountdown}
+         />
+      )}
     </div>
   );
 };
@@ -895,7 +1156,7 @@ const TimeGridsMulti = () => {
     if (activeChildId && children.length > 0) {
         const child = children.find(c => c.id === activeChildId);
         if (child) {
-            calculateStats(child.birthDate);
+            calculateStats(child);
         }
     }
   }, [activeChildId, children]);
@@ -908,8 +1169,8 @@ const TimeGridsMulti = () => {
     }
   }, [stats?.agePhase]);
 
-  const calculateStats = (dateStr) => {
-    const start = new Date(dateStr);
+  const calculateStats = (child) => {
+    const start = new Date(child.birthDate);
     const now = new Date();
     if (isNaN(start.getTime())) return;
 
@@ -943,13 +1204,35 @@ const TimeGridsMulti = () => {
     end18.setFullYear(start.getFullYear() + 18);
     const daysUntilAdulthood = Math.ceil((end18 - now) / (1000 * 60 * 60 * 24));
 
+    // 计算下一个生日
+    const nextBirthday = new Date(now.getFullYear(), start.getMonth(), start.getDate());
+    if (nextBirthday < now) {
+        nextBirthday.setFullYear(now.getFullYear() + 1);
+    }
+    const daysUntilNextBirthday = Math.ceil((nextBirthday - now) / (1000 * 60 * 60 * 24));
+
+    // 计算周末
+    const remainingWeekends = Math.max(0, (18 - age) * 52);
+    const remainingSpringFestivals = Math.max(0, 18 - age);
+
+    // 计算自定义倒计时 (仅用于兼容旧数据，新数据在渲染列表时动态计算)
+    let daysUntilCustom = null;
+    if (child.customDate) {
+        const customTarget = new Date(child.customDate);
+        if (!isNaN(customTarget.getTime())) {
+             daysUntilCustom = Math.ceil((customTarget - now) / (1000 * 60 * 60 * 24));
+        }
+    }
+
     setStats({
-      birthDateStr: dateStr,
+      birthDateStr: child.birthDate,
       totalMonths, monthsPassed, percent, age, agePhase, phaseName, daysAlive,
       daysUntilAdulthood: Math.max(0, daysUntilAdulthood),
-      remainingSpringFestivals: Math.max(0, 18 - age),
-      remainingWeekends: Math.max(0, (18 - age) * 52),
-      daysUntilGaokao: Math.max(0, daysUntilGaokao)
+      daysUntilGaokao: Math.max(0, daysUntilGaokao),
+      daysUntilNextBirthday: Math.max(0, daysUntilNextBirthday),
+      remainingWeekends,
+      remainingSpringFestivals,
+      daysUntilCustom: daysUntilCustom // 可以为负数，表示已过去
     });
   };
 
@@ -1047,6 +1330,14 @@ const TimeGridsMulti = () => {
       );
       setChildren(updatedChildren);
       setView('dashboard');
+  };
+  
+  // 专门用于保存孩子数据的更新（如倒计时变动）
+  const handleSaveChildData = (updates) => {
+      const updatedChildren = children.map(c => 
+        c.id === activeChildId ? { ...c, ...updates } : c
+      );
+      setChildren(updatedChildren);
   };
 
   const handleDeleteChild = () => {
@@ -1176,6 +1467,7 @@ const TimeGridsMulti = () => {
           childrenList={children}
           handleDeleteChild={() => setShowDeleteConfirm(true)} 
           handleEditChild={() => setView('edit_child')}
+          handleSaveChildData={handleSaveChildData}
           memories={getCurrentChildMemories()} 
           openMemoryModal={(idx) => {
               if (idx <= stats.monthsPassed) {
